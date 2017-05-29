@@ -3,6 +3,7 @@
 LogIQ is a simple monitoring front end for Elastic Logstash. It uses Monitoring [API](https://www.elastic.co/guide/en/logstash/current/monitoring.html). 
 
 It works only for Logstash version >5.0 only.
+
 ![Screenshot](LogIQ.jpg)
 
 # Usage
@@ -30,17 +31,17 @@ server {
         }
     }
 ```
+
 Don't forget to set your logstash hostname and exposed port.
-After Nginx restart it will proxy requests from port 9601 to 9600 with right headres.
+After Nginx restart it will proxy requests from port 9601 to 9600 with right headeres.
 
 
 # TO-DO
 - Add Logstash disconnections handling
 - Add more metrics and stats per plugin
-- Add refresh rate options
+- Add refresh rate option
 - Add charts
 - Make as a browser plugin
-
 
 # Feedback
 [sadovenko@gmail.com]()
