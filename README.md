@@ -1,6 +1,7 @@
 # LogIQ
 
 LogIQ is a simple monitoring front end for Elastic Logstash. It uses Monitoring [API](https://www.elastic.co/guide/en/logstash/current/monitoring.html). 
+
 It works only for Logstash version >5.0 only.
 ![Screenshot](LogIQ.jpg)
 
@@ -9,6 +10,7 @@ Just open the html page and add your Logstash hosts with port number. You need i
 
 # Logstash Configuration
 You need to enable remote connections on Logstash, just add the line in Logstash config file (default /etc/logstash/logstash.yml):
+
 ```http.host: "0.0.0.0"```
 
 Logstash may not allow CORS calls, you can use proxy to [fix](https://enable-cors.org/server_nginx.html) this.
