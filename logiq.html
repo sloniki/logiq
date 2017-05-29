@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Logstash Monitor</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootswatch/3.3.7/cerulean/bootstrap.min.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.0/jquery.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+    <style media="screen" type="text/css">
+        .panel-default>.panel-heading {
+            color: #555555;
+        }
+        
+        .panel-title {
+            padding-top: 6px;
+        }
+        
+        .row-fluid {
+            padding-top: 10px;
+            color: #555555;
+        }
+        
+        .row {
+            padding-left: 15px;
+            padding-right: 15px;
+        }
+        
+        .table>tbody>tr:first-child>td {
+            border: none;
+        }
+        
+        .table {
+            margin-bottom: 0;
+        }
+        
+        .glyphicon-refresh-animate {
+            float: right;
+            -animation: spin 1s infinite linear;
+            -webkit-animation: spin2 1s infinite linear;
+        }
+        
+        @-webkit-keyframes spin2 {
+            from {
+                -webkit-transform: rotate(0deg);
+            }
+            to {
+                -webkit-transform: rotate(360deg);
+            }
+        }
+        
+        @keyframes spin {
+            from {
+                transform: scale(1) rotate(0deg);
+            }
+            to {
+                transform: scale(1) rotate(360deg);
+            }
+        }
+
+    </style>
+</head>
+
+<body>
+
+    <nav class="navbar navbar-default">
+        <div class="container-fluid">
+            <div class="navbar-header">
+                <a class="navbar-brand">LogIQ</a>
+            </div>
+            <div class="notices pull-right">
+                <p class="navbar-text">ver 0.3</p>
+            </div>
+        </div>
+    </nav>
+    <div id="global_container" class="container-fluid">
+        <form class="form-inline" style="padding-bottom: 20px;">
+            <div class="form-group">
+                <label for="host_port">Logstash host:port </label>
+                <input id="host_port" class="form-control" name="hostname" value="http://hostname:9601">
+            </div>
+            <button id="bt_connect" type='button' class="btn btn-success">Add</button>
+            <button id="bt_refresh" type='button' class="btn btn-primary pull-right">Refresh</button>
+            <div class="col-md-2 pull-right">
+                <h4 id="upd_date">Last Update: N/A</h4>
+            </div>
+            <div class="col-md-1 pull-right">
+                <h4><i class="glyphicon glyphicon-refresh glyphicon-refresh-animate" style="display:none"></i></h4>
+            </div>
+        </form>
+        <div id="tm_ls_instance" class="panel panel-primary" style="display:none">
+            <div class="panel-heading clearfix">
+                <h2 id="ls_hostname" class="panel-title pull-left">hostname1</h2>
+                <button id="delete_panel" type="button" class="btn btn-danger btn-sm pull-right del_p_class">Delete</button>
+            </div>
+            <div class="row-fluid">
+                <div class="col-md-4">
+                    <div class="panel panel-default">
+                        <div class="panel-heading">Pipeline Stats</div>
+                        <div class="panel-body">
+                            <table class="table table">
+                                <tbody>
+                                    <tr>
+                                        <td>In:</td>
+                                        <td>
+                                            <p class="text-info in_value">N/A</p>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>Filterd:</td>
+                                        <td>
+                                            <p class="text-info fil_value">N/A</p>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>Out</td>
+                                        <td>
+                                            <p class="text-info out_value">N/A</p>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>Duration, ms:</td>
+                                        <td>
+                                            <p class="text-info dur_value">N/A</p>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>Push Duration, ms:</td>
+                                        <td>
+                                            <p class="text-info pdur_value">N/A</p>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="panel panel-default">
+                        <div class="panel-heading">JVM</div>
+                        <div class="panel-body">
+                            <table class="table table">
+                                <tbody>
+                                    <tr>
+                                        <td>Heap Usage, %:</td>
+                                        <td>
+                                            <p class="text-info heapp_value">N/A</p>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>Heap Usage, Bytes:</td>
+                                        <td>
+                                            <p class="text-info heapb_value">N/A</p>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>Heap Usage Max, Bytes:</td>
+                                        <td>
+                                            <p class="text-info heapbm_value">N/A</p>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>Non Heap, Bytes:</td>
+                                        <td>
+                                            <p class="text-info nheapb_value">N/A</p>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>Uptime, ms:</td>
+                                        <td>
+                                            <p class="text-info upm_value">N/A</p>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="panel panel-default">
+                        <div class="panel-heading">Process Stats</div>
+                        <div class="panel-body">
+                            <table class="table table">
+                                <tbody>
+                                    <tr>
+                                        <td>File Descriptors:</td>
+                                        <td>
+                                            <p class="text-info fd_value">N/A</p>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>Peak File Descriptors:</td>
+                                        <td>
+                                            <p class="text-info text-info pfd_value">N/A</p>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>CPU, %</td>
+                                        <td>
+                                            <p class="text-info text-info cpup_value">N/A</p>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>CPU Load Avg:</td>
+                                        <td>
+                                            <p class="text-info text-info load1m_value">N/A</p>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>Reloads Failures:</td>
+                                        <td>
+                                            <p class="text-info text-info relf_value">N/A</p>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div id="coll_gr_1" class="col-md-12">
+                    <div class="panel-group" id="accordion">
+                        <div class="panel panel-default">
+                            <div class="panel-heading">
+                                <a id="href1" data-toggle="collapse" data-parent="#accordion" href="#collapse1">General Info</a>
+                            </div>
+                            <div id="collapse1" class="panel-collapse collapse">
+                                <div class="panel-body">
+                                    <table class="table table">
+                                        <tbody>
+                                            <tr>
+                                                <td>Host:</td>
+                                                <td>
+                                                    <p class="text-info host_value">N/A</p>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td>Logstash Ver.:</td>
+                                                <td>
+                                                    <p class="text-info ver_value">N/A</p>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td>Address:</td>
+                                                <td>
+                                                    <p class="text-info addr_value">N/A</p>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td>Available CPUs:</td>
+                                                <td>
+                                                    <p class="text-info cpu_value">N/A</p>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td>ID:</td>
+                                                <td>
+                                                    <p class="text-info id_value">N/A</p>
+                                                </td>
+                                            </tr>
+
+                                            <tr>
+                                                <td>Workers:</td>
+                                                <td>
+                                                    <p class="text-info workers_value">N/A</p>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td>Batch Delay:</td>
+                                                <td>
+                                                    <p class="text-info bdelay_value">N/A</p>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td>Batch Size:</td>
+                                                <td>
+                                                    <p class="text-info bsize_value">N/A</p>
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+
+                                </div>
+                            </div>
+                        </div>
+                        <div class="panel panel-default">
+                            <div class="panel-heading">
+                                <a id="href2" data-toggle="collapse" data-parent="#accordion" href="#collapse2">Hot Threads</a>
+                            </div>
+                            <div id="collapse2" class="panel-collapse collapse">
+                                <div class="panel-body">
+                                    <pre class="ht_text">
+                                    </pre>
+
+                                </div>
+                            </div>
+                        </div>
+                        <div class="panel panel-default">
+                            <div class="panel-heading">
+                                <a id="href3" data-toggle="collapse" data-parent="#accordion" href="#collapse3">Plugins Info</a>
+                            </div>
+                            <div id="collapse3" class="panel-collapse collapse">
+                                <div class="panel-body">
+                                    <pre class="pn_text">
+                                    </pre>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script>
+        var panels_count = 0;
+
+        function formatBytes(bytes, decimals) {
+            if (bytes == 0) return '0 Bytes';
+            var k = 1000,
+                dm = decimals || 2,
+                sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB'],
+                i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i];
+        }
+
+        function update_all() {
+            $('div[id^="ls_instance"]').each(function() {
+                update_panel($(this));
+            });
+            $(".glyphicon").show().fadeIn('slow').delay(500).fadeOut('slow');
+        };
+
+        setInterval(function() {
+            update_all();
+        }, 15000);
+
+        function update_panel(panel) {
+            var host_port = panel.find('h2').text();
+            $.get(host_port + "/_node/stats/process", function(data) {
+                panel.find('.fd_value').text(data['process']['open_file_descriptors']);
+                panel.find('.pfd_value').text(data['process']['peak_open_file_descriptors']);
+                panel.find('.cpup_value').text(data['process']['cpu']['percent']);
+                panel.find('.load1m_value').text(data['process']['cpu']['load_average']['1m']);
+            });
+            $.get(host_port + "/_node/stats/reloads", function(data) {
+                panel.find('.relf_value').text(data['reloads']['failures']);
+            });
+            $.get(host_port + "/_node/stats/pipeline", function(data) {
+                panel.find('.in_value').text(data['pipeline']['events']['in']);
+                panel.find('.fil_value').text(data['pipeline']['events']['filtered']);
+                panel.find('.out_value').text(data['pipeline']['events']['out']);
+                panel.find('.dur_value').text(data['pipeline']['events']['duration_in_millis']);
+                panel.find('.pdur_value').text(data['pipeline']['events']['queue_push_duration_in_millis']);
+            });
+            $.get(host_port + "/_node/stats/jvm", function(data) {
+                panel.find('.heapp_value').text(data['jvm']['mem']['heap_used_percent']);
+                panel.find('.heapb_value').text(formatBytes(data['jvm']['mem']['heap_used_in_bytes']), 3);
+                panel.find('.nheapb_value').text(formatBytes(data['jvm']['mem']['non_heap_used_in_bytes']), 3);
+                panel.find('.heapbm_value').text(formatBytes(data['jvm']['mem']['heap_max_in_bytes']), 3);
+                panel.find('.upm_value').text(data['jvm']['uptime_in_millis']);
+            });
+            $.get(host_port + "/_node/os", function(data) {
+                panel.find('.host_value').text(data['host']);
+                panel.find('.ver_value').text(data['version']);
+                panel.find('.addr_value').text(data['http_address']);
+                panel.find('.cpu_value').text(data['os']['available_processors']);
+                panel.find('.id_value').text(data['id']);
+            });
+            $.get(host_port + "/_node/pipeline", function(data) {
+                panel.find('.workers_value').text(data['pipeline']['workers']);
+                panel.find('.bdelay_value').text(data['pipeline']['batch_delay']);
+                panel.find('.bsize_value').text(data['pipeline']['batch_size']);
+            });
+            $.get(host_port + "/_node/hot_threads?human=true", function(data) {
+                panel.find('.ht_text').text(data);
+            });
+            $.get(host_port + "/_node/plugins", function(data) {
+                panel.find('.pn_text').text(JSON.stringify(data, null, '\t'));
+            });
+            var dt = new Date();
+            var time = dt.getHours() + ":" + dt.getMinutes() + ":" + dt.getSeconds();
+            $('#upd_date').text('Last Update: ' + time);
+        };
+
+        $("#bt_connect").on('click', function() {
+            var host_port = $('#host_port').val();
+            var duplicate = false;
+
+            $('div[id^="ls_instance"]').each(function() {
+                if (host_port === $(this).find('h2').text()) {
+                    alert("Panel is already open!");
+                    duplicate = true;
+                    return;
+                };
+            });
+
+            if (!duplicate) {
+                $.get(host_port, function(data) {
+                        instance_id = 'ls_instance' + panels_count;
+                        $new_ls_instance =
+                            $('#tm_ls_instance').clone().prop('id', instance_id).appendTo("#global_container");
+                        $new_ls_instance.find('h2').text(host_port);
+                        $new_ls_instance.find('#href1').attr('href', '#collapse1' + panels_count);
+                        $new_ls_instance.find('#href2').attr('href', '#collapse2' + panels_count);
+                        $new_ls_instance.find('#href3').attr('href', '#collapse3' + panels_count);
+                        $new_ls_instance.find('#collapse1').attr('id', 'collapse1' + panels_count);
+                        $new_ls_instance.find('#collapse2').attr('id', 'collapse2' + panels_count);
+                        $new_ls_instance.find('#collapse3').attr('id', 'collapse3' + panels_count);
+                        $new_ls_instance.find('#delete_panel').attr('id', 'delete_panel' + panels_count);
+                        $new_ls_instance.show();
+                        panels_count = panels_count + 1;
+                        update_panel($new_ls_instance);
+                    })
+                    .fail(function() {
+                        alert('Connection Error!');
+                    });
+            }
+        });
+
+        $(document).on('click', '.btn-sm', function() {
+            $(this).parent().parent().remove();
+        });
+
+        $(document).on('click', '#bt_refresh', function() {
+            update_all();
+        });
+
+    </script>
+</body>
+
+</html>
