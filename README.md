@@ -2,6 +2,7 @@
 
 LogIQ is a simple monitoring front end for Elastic Logstash. It uses Monitoring [API](https://www.elastic.co/guide/en/logstash/current/monitoring.html). 
 It works only for Logstash version >5.0 only.
+![Screenshot](LogIQ.jpg)
 
 # Usage
 Just open the html page and add your Logstash hosts with port number. You need internet connection as the page uses external libraries like bootstrap and jquery.
