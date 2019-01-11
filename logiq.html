@@ -10,35 +10,35 @@
         .panel-default>.panel-heading {
             color: #555555;
         }
-        
+
         .panel-title {
             padding-top: 6px;
         }
-        
+
         .row-fluid {
             padding-top: 10px;
             color: #555555;
         }
-        
+
         .row {
             padding-left: 15px;
             padding-right: 15px;
         }
-        
+
         .table>tbody>tr:first-child>td {
             border: none;
         }
-        
+
         .table {
             margin-bottom: 0;
         }
-        
+
         .glyphicon-refresh-animate {
             float: right;
             -animation: spin 1s infinite linear;
             -webkit-animation: spin2 1s infinite linear;
         }
-        
+
         @-webkit-keyframes spin2 {
             from {
                 -webkit-transform: rotate(0deg);
@@ -47,7 +47,7 @@
                 -webkit-transform: rotate(360deg);
             }
         }
-        
+
         @keyframes spin {
             from {
                 transform: scale(1) rotate(0deg);
@@ -68,7 +68,7 @@
                 <a class="navbar-brand">LogIQ</a>
             </div>
             <div class="notices pull-right">
-                <p class="navbar-text">ver 0.3</p>
+                <p class="navbar-text">ver 0.4</p>
             </div>
         </div>
     </nav>
@@ -100,31 +100,31 @@
                             <table class="table table">
                                 <tbody>
                                     <tr>
-                                        <td>In:</td>
+                                        <td>In (TPS):</td>
                                         <td>
                                             <p class="text-info in_value">N/A</p>
                                         </td>
                                     </tr>
                                     <tr>
-                                        <td>Filterd:</td>
+                                        <td>Filterd (TPS):</td>
                                         <td>
                                             <p class="text-info fil_value">N/A</p>
                                         </td>
                                     </tr>
                                     <tr>
-                                        <td>Out</td>
+                                        <td>Out (TPS):</td>
                                         <td>
                                             <p class="text-info out_value">N/A</p>
                                         </td>
                                     </tr>
                                     <tr>
-                                        <td>Duration, ms:</td>
+                                        <td>Duration, s:</td>
                                         <td>
                                             <p class="text-info dur_value">N/A</p>
                                         </td>
                                     </tr>
                                     <tr>
-                                        <td>Push Duration, ms:</td>
+                                        <td>Push Duration, s:</td>
                                         <td>
                                             <p class="text-info pdur_value">N/A</p>
                                         </td>
@@ -165,7 +165,7 @@
                                         </td>
                                     </tr>
                                     <tr>
-                                        <td>Uptime, ms:</td>
+                                        <td>Uptime, s:</td>
                                         <td>
                                             <p class="text-info upm_value">N/A</p>
                                         </td>
@@ -200,9 +200,9 @@
                                         </td>
                                     </tr>
                                     <tr>
-                                        <td>CPU Load Avg:</td>
+                                        <td>CPU Load Avg(1m 5m 15m):</td>
                                         <td>
-                                            <p class="text-info text-info load1m_value">N/A</p>
+                                            <p class="text-info text-info load_value">N/A</p>
                                         </td>
                                     </tr>
                                     <tr>
@@ -341,24 +341,51 @@
                 panel.find('.fd_value').text(data['process']['open_file_descriptors']);
                 panel.find('.pfd_value').text(data['process']['peak_open_file_descriptors']);
                 panel.find('.cpup_value').text(data['process']['cpu']['percent']);
-                panel.find('.load1m_value').text(data['process']['cpu']['load_average']['1m']);
+                panel.find('.load_value').text(
+                    data['process']['cpu']['load_average']['1m']
+                    +", "+
+                    data['process']['cpu']['load_average']['5m']
+                    +", "+
+                    data['process']['cpu']['load_average']['15m']);
             });
             $.get(host_port + "/_node/stats/reloads", function(data) {
                 panel.find('.relf_value').text(data['reloads']['failures']);
             });
-            $.get(host_port + "/_node/stats/pipeline", function(data) {
-                panel.find('.in_value').text(data['pipeline']['events']['in']);
-                panel.find('.fil_value').text(data['pipeline']['events']['filtered']);
-                panel.find('.out_value').text(data['pipeline']['events']['out']);
-                panel.find('.dur_value').text(data['pipeline']['events']['duration_in_millis']);
-                panel.find('.pdur_value').text(data['pipeline']['events']['queue_push_duration_in_millis']);
+            $.get(host_port + "/_node/stats/events", function(data) {
+                var in_num = data['events']['in'];
+                var filter_num = data['events']['filtered'];
+                var out_num = data['events']['out'];
+                var dur = data['events']['duration_in_millis'];
+                var push_dur = data['events']['queue_push_duration_in_millis'];
+                var in_tps = dur == null || dur == 0 ? 0 : (in_num/(parseInt(dur)/1000).toFixed(1)).toFixed(1);
+                var filter_tps = dur == null || dur == 0 ? 0 : (filter_num/(parseInt(dur)/1000).toFixed(1)).toFixed(1);
+                var out_tps = dur == null || dur == 0 ? 0 : (out_num/(parseInt(dur)/1000).toFixed(1)).toFixed(1);
+
+
+                panel.find('.in_value').text(
+                    in_num
+                    +" ("+
+                    in_tps
+                    +"/s)");
+                panel.find('.fil_value').text(
+                    filter_num
+                    +" ("+
+                    filter_tps
+                    +"/s)");
+                panel.find('.out_value').text(
+                    out_num
+                    +" ("+
+                    out_tps
+                    +"/s)");
+                panel.find('.dur_value').text(dur == null ? "null" : (parseInt(dur)/1000).toFixed(1));
+                panel.find('.pdur_value').text(push_dur == null ? "null" : (parseInt(push_dur)/1000).toFixed(1));
             });
             $.get(host_port + "/_node/stats/jvm", function(data) {
                 panel.find('.heapp_value').text(data['jvm']['mem']['heap_used_percent']);
                 panel.find('.heapb_value').text(formatBytes(data['jvm']['mem']['heap_used_in_bytes']), 3);
                 panel.find('.nheapb_value').text(formatBytes(data['jvm']['mem']['non_heap_used_in_bytes']), 3);
                 panel.find('.heapbm_value').text(formatBytes(data['jvm']['mem']['heap_max_in_bytes']), 3);
-                panel.find('.upm_value').text(data['jvm']['uptime_in_millis']);
+                panel.find('.upm_value').text((parseInt(data['jvm']['uptime_in_millis'])/1000).toFixed(1));
             });
             $.get(host_port + "/_node/os", function(data) {
                 panel.find('.host_value').text(data['host']);
@@ -367,10 +394,10 @@
                 panel.find('.cpu_value').text(data['os']['available_processors']);
                 panel.find('.id_value').text(data['id']);
             });
-            $.get(host_port + "/_node/pipeline", function(data) {
-                panel.find('.workers_value').text(data['pipeline']['workers']);
-                panel.find('.bdelay_value').text(data['pipeline']['batch_delay']);
-                panel.find('.bsize_value').text(data['pipeline']['batch_size']);
+            $.get(host_port + "/_node/pipelines", function(data) {
+                panel.find('.workers_value').text(data['pipelines']['main']['workers']);
+                panel.find('.bdelay_value').text(data['pipelines']['main']['batch_delay']);
+                panel.find('.bsize_value').text(data['pipelines']['main']['batch_size']);
             });
             $.get(host_port + "/_node/hot_threads?human=true", function(data) {
                 panel.find('.ht_text').text(data);
