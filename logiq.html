@@ -100,19 +100,19 @@
                             <table class="table table">
                                 <tbody>
                                     <tr>
-                                        <td>In (TPS):</td>
+                                        <td>In:</td>
                                         <td>
                                             <p class="text-info in_value">N/A</p>
                                         </td>
                                     </tr>
                                     <tr>
-                                        <td>Filterd (TPS):</td>
+                                        <td>Filterd:</td>
                                         <td>
                                             <p class="text-info fil_value">N/A</p>
                                         </td>
                                     </tr>
                                     <tr>
-                                        <td>Out (TPS):</td>
+                                        <td>Out:</td>
                                         <td>
                                             <p class="text-info out_value">N/A</p>
                                         </td>
@@ -357,26 +357,13 @@
                 var out_num = data['events']['out'];
                 var dur = data['events']['duration_in_millis'];
                 var push_dur = data['events']['queue_push_duration_in_millis'];
-                var in_tps = dur == null || dur == 0 ? 0 : (in_num/(parseInt(dur)/1000).toFixed(1)).toFixed(1);
-                var filter_tps = dur == null || dur == 0 ? 0 : (filter_num/(parseInt(dur)/1000).toFixed(1)).toFixed(1);
-                var out_tps = dur == null || dur == 0 ? 0 : (out_num/(parseInt(dur)/1000).toFixed(1)).toFixed(1);
+                //var in_tps = dur == null || dur == 0 ? 0 : (in_num/(parseInt(dur)/1000).toFixed(1)).toFixed(1);
+                //var filter_tps = dur == null || dur == 0 ? 0 : (filter_num/(parseInt(dur)/1000).toFixed(1)).toFixed(1);
+                //var out_tps = dur == null || dur == 0 ? 0 : (out_num/(parseInt(dur)/1000).toFixed(1)).toFixed(1);
 
-
-                panel.find('.in_value').text(
-                    in_num
-                    +" ("+
-                    in_tps
-                    +"/s)");
-                panel.find('.fil_value').text(
-                    filter_num
-                    +" ("+
-                    filter_tps
-                    +"/s)");
-                panel.find('.out_value').text(
-                    out_num
-                    +" ("+
-                    out_tps
-                    +"/s)");
+                panel.find('.in_value').text(in_num);
+                panel.find('.fil_value').text(filter_num);
+                panel.find('.out_value').text(out_num);
                 panel.find('.dur_value').text(dur == null ? "null" : (parseInt(dur)/1000).toFixed(1));
                 panel.find('.pdur_value').text(push_dur == null ? "null" : (parseInt(push_dur)/1000).toFixed(1));
             });
