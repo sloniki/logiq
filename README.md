@@ -4,6 +4,8 @@ LogIQ is a simple monitoring front end for Elastic Logstash. It uses Monitoring 
 
 Works for Logstash version > **6.0**.
 
+![example_image](example.png)
+
 # Update
 
 **By PriestTomb**
@@ -12,9 +14,11 @@ Works for Logstash version > **6.0**.
 
 * modify the time-related data unit in seconds
 
-* ~~add TPS data to in, filter, out plugin~~(use in/duration_in_millis is not accurate)
-
 * show 5m and 15m cpu average load data
+
+* deleted manually refreshed button, changed to auto refresh
+
+* use `_node/stats/pipelines` API to show In/Out events data and TPS for all running plugins (just real-time calculations, non-persistent)
 
 # Usage
 Just open the html page and add your Logstash hosts with port number. You need internet connection as the page uses external libraries like bootstrap and jquery.
