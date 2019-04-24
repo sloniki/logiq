@@ -16,9 +16,9 @@ Works for Logstash version > **6.0**.
 
 * show 5m and 15m cpu average load data
 
-* deleted manually refreshed button, changed to auto refresh
+* deleted manually refreshed button, changed to auto refresh, default interval is 3 seconds
 
-* use `_node/stats/pipelines` API to show In/Out events data and TPS for all running plugins (just real-time calculations, non-persistent)
+* show all pipelines instance stats, and use `_node/stats/pipelines` API to show In/Filter/Out events data and TPS for all running plugins (just real-time calculations, non-persistent)
 
 # Usage
 Just open the html page and add your Logstash hosts with port number. You need internet connection as the page uses external libraries like bootstrap and jquery.

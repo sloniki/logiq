@@ -32,6 +32,15 @@
         .table>tbody>tr:first-child>td {
             border: none;
         }
+
+        .table>tbody>tr:first-child>td:first-child {
+            width: 60%;
+        }
+
+        .table>tbody>tr:first-child>td:last-child {
+            width: 40%;
+            word-break: break-all;
+        }
         
         .table {
             margin-bottom: 0;
@@ -224,10 +233,39 @@
 
             <div class="row-fluid">
                 <div id="pipelines_div" class="col-md-12">
-                    <div class="panel-group">
-                        <div class="panel panel-default">
-                            <div class="panel-heading">Pipelines Plugins Stats</div>
-                            <div class="panel-body" id="plugins_stats_container">
+                    <div class="panel-group" id="pipelines_stats_container">
+                        <div id="plugin_panel" class="panel panel-default" style="display:none">
+                            <div class="panel-heading plugin-panel-heading"></div>
+                            <div class="panel-body plugin-panel-body">
+                                <div class="plugin-stats-div col-md-4">
+                                    <div class="panel panel-default">
+                                        <div class="panel-heading">Pipeline Base Info</div>
+                                        <div class="panel-body">
+                                            <table class="table">
+                                                <tbody>
+                                                    <tr>
+                                                        <td>Workers:</td>
+                                                        <td>
+                                                            <p class="text-info workers_value">N/A</p>
+                                                        </td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td>Batch Delay:</td>
+                                                        <td>
+                                                            <p class="text-info bdelay_value">N/A</p>
+                                                        </td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td>Batch Size:</td>
+                                                        <td>
+                                                            <p class="text-info bsize_value">N/A</p>
+                                                        </td>
+                                                    </tr>
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -275,25 +313,6 @@
                                                     <p class="text-info id_value">N/A</p>
                                                 </td>
                                             </tr>
-
-                                            <tr>
-                                                <td>Workers:</td>
-                                                <td>
-                                                    <p class="text-info workers_value">N/A</p>
-                                                </td>
-                                            </tr>
-                                            <tr>
-                                                <td>Batch Delay:</td>
-                                                <td>
-                                                    <p class="text-info bdelay_value">N/A</p>
-                                                </td>
-                                            </tr>
-                                            <tr>
-                                                <td>Batch Size:</td>
-                                                <td>
-                                                    <p class="text-info bsize_value">N/A</p>
-                                                </td>
-                                            </tr>
                                         </tbody>
                                     </table>
 
@@ -336,6 +355,12 @@
                     <table class="table">
                         <tbody>
                             <tr>
+                                <td>Plugin Id:</td>
+                                <td>
+                                    <p class="text-info">0</p>
+                                </td>
+                            </tr>
+                            <tr>
                                 <td>In Nums (TPS):</td>
                                 <td>
                                     <p class="text-info">0</p>
@@ -365,6 +390,12 @@
                 <div class="panel-body">
                     <table class="table">
                         <tbody>
+                            <tr>
+                                <td>Plugin Id:</td>
+                                <td>
+                                    <p class="text-info">0</p>
+                                </td>
+                            </tr>
                             <tr>
                                 <td>Out Nums (TPS):</td>
                                 <td>
@@ -443,62 +474,67 @@
                 panel.find('.pdur_value').text(push_dur == null ? 0 : (parseInt(push_dur)/1000).toFixed(1));
             });
             $.get(host_port + "/_node/stats/pipelines", function(data) {
-                var plugins_json = data['pipelines']['main']['plugins'];
-                var inputs = plugins_json['inputs'];
-                var filters = plugins_json['filters'];
-                var outputs = plugins_json['outputs'];
-                var time_interval = refresh_interval/1000;
+                var pipelines_json = data['pipelines'];
+                for (var pipeline in pipelines_json) {
+                    var pipeline_id = pipeline;
+                    var plugins_json = pipelines_json[pipeline_id]['plugins'];
+                    
+                    var inputs = plugins_json['inputs'];
+                    var filters = plugins_json['filters'];
+                    var outputs = plugins_json['outputs'];
+                    var time_interval = refresh_interval/1000;
 
-                for (var i = 0; i < inputs.length; i++) {
-                    var input = inputs[i];
-                    var id = input['id'];
+                    for (var i = 0; i < inputs.length; i++) {
+                        var input = inputs[i];
+                        var id = input['id'];
 
-                    var p_out = panel.find("#out" + id);
-                    var out_num_new = isNaN(parseInt(input['events']['out'])) ? 0 : parseInt(input['events']['out']);
-                    var out_num_old = isNaN(parseInt(p_out.text())) ? 0 : parseInt(p_out.text());
-                    var out_tps = ((out_num_new - out_num_old)/time_interval).toFixed(1);
-                    p_out.text(out_num_new + " (" + out_tps + "/s)");
+                        var p_out = panel.find("#out" + id);
+                        var out_num_new = isNaN(parseInt(input['events']['out'])) ? 0 : parseInt(input['events']['out']);
+                        var out_num_old = isNaN(parseInt(p_out.text())) ? 0 : parseInt(p_out.text());
+                        var out_tps = ((out_num_new - out_num_old)/time_interval).toFixed(1);
+                        p_out.text(out_num_new + " (" + out_tps + "/s)");
 
-                    var push_dur = input['events']['queue_push_duration_in_millis'];
-                    panel.find("#pdur" + id).text(push_dur == null ? 0 : (parseInt(push_dur)/1000).toFixed(1));
-                }
+                        var push_dur = input['events']['queue_push_duration_in_millis'];
+                        panel.find("#pdur" + id).text(push_dur == null ? 0 : (parseInt(push_dur)/1000).toFixed(1));
+                    }
 
-                for (var i = 0; i < filters.length; i++) {
-                    var filter = filters[i];
-                    var id = filter['id'];
+                    for (var i = 0; i < filters.length; i++) {
+                        var filter = filters[i];
+                        var id = filter['id'];
 
-                    var p_in = panel.find("#in" + id);
-                    var p_out = panel.find("#out" + id);
-                    var in_num_new = isNaN(parseInt(filter['events']['in'])) ? 0 : parseInt(filter['events']['in']);
-                    var out_num_new = isNaN(parseInt(filter['events']['out'])) ? 0 : parseInt(filter['events']['out']);
-                    var in_num_old = isNaN(parseInt(p_in.text())) ? 0 : parseInt(p_in.text());
-                    var out_num_old = isNaN(parseInt(p_out.text())) ? 0 : parseInt(p_out.text());
-                    var in_tps = ((in_num_new - in_num_old)/time_interval).toFixed(1);
-                    var out_tps = ((out_num_new - out_num_old)/time_interval).toFixed(1);
-                    p_in.text(in_num_new + " (" + in_tps + "/s)");
-                    p_out.text(out_num_new + " (" + out_tps + "/s)");
+                        var p_in = panel.find("#in" + id);
+                        var p_out = panel.find("#out" + id);
+                        var in_num_new = isNaN(parseInt(filter['events']['in'])) ? 0 : parseInt(filter['events']['in']);
+                        var out_num_new = isNaN(parseInt(filter['events']['out'])) ? 0 : parseInt(filter['events']['out']);
+                        var in_num_old = isNaN(parseInt(p_in.text())) ? 0 : parseInt(p_in.text());
+                        var out_num_old = isNaN(parseInt(p_out.text())) ? 0 : parseInt(p_out.text());
+                        var in_tps = ((in_num_new - in_num_old)/time_interval).toFixed(1);
+                        var out_tps = ((out_num_new - out_num_old)/time_interval).toFixed(1);
+                        p_in.text(in_num_new + " (" + in_tps + "/s)");
+                        p_out.text(out_num_new + " (" + out_tps + "/s)");
 
-                    var dur = filter['events']['duration_in_millis'];
-                    panel.find("#dur" + id).text(dur == null ? 0 : (parseInt(dur)/1000).toFixed(1));
-                }
+                        var dur = filter['events']['duration_in_millis'];
+                        panel.find("#dur" + id).text(dur == null ? 0 : (parseInt(dur)/1000).toFixed(1));
+                    }
 
-                for (var i = 0; i < outputs.length; i++) {
-                    var output = outputs[i];
-                    var id = output['id'];
+                    for (var i = 0; i < outputs.length; i++) {
+                        var output = outputs[i];
+                        var id = output['id'];
 
-                    var p_in = panel.find("#in" + id);
-                    var p_out = panel.find("#out" + id);
-                    var in_num_new = isNaN(parseInt(output['events']['in'])) ? 0 : parseInt(output['events']['in']);
-                    var out_num_new = isNaN(parseInt(output['events']['out'])) ? 0 : parseInt(output['events']['out']);
-                    var in_num_old = isNaN(parseInt(p_in.text())) ? 0 : parseInt(p_in.text());
-                    var out_num_old = isNaN(parseInt(p_out.text())) ? 0 : parseInt(p_out.text());
-                    var in_tps = ((in_num_new - in_num_old)/time_interval).toFixed(1);
-                    var out_tps = ((out_num_new - out_num_old)/time_interval).toFixed(1);
-                    p_in.text(in_num_new + " (" + in_tps + "/s)");
-                    p_out.text(out_num_new + " (" + out_tps + "/s)");
+                        var p_in = panel.find("#in" + id);
+                        var p_out = panel.find("#out" + id);
+                        var in_num_new = isNaN(parseInt(output['events']['in'])) ? 0 : parseInt(output['events']['in']);
+                        var out_num_new = isNaN(parseInt(output['events']['out'])) ? 0 : parseInt(output['events']['out']);
+                        var in_num_old = isNaN(parseInt(p_in.text())) ? 0 : parseInt(p_in.text());
+                        var out_num_old = isNaN(parseInt(p_out.text())) ? 0 : parseInt(p_out.text());
+                        var in_tps = ((in_num_new - in_num_old)/time_interval).toFixed(1);
+                        var out_tps = ((out_num_new - out_num_old)/time_interval).toFixed(1);
+                        p_in.text(in_num_new + " (" + in_tps + "/s)");
+                        p_out.text(out_num_new + " (" + out_tps + "/s)");
 
-                    var dur = output['events']['duration_in_millis'];
-                    panel.find("#dur" + id).text(dur == null ? 0 : (parseInt(dur)/1000).toFixed(1));
+                        var dur = output['events']['duration_in_millis'];
+                        panel.find("#dur" + id).text(dur == null ? 0 : (parseInt(dur)/1000).toFixed(1));
+                    }
                 }
             });
             $.get(host_port + "/_node/stats/jvm", function(data) {
@@ -516,9 +552,17 @@
                 panel.find('.id_value').text(data['id']);
             });
             $.get(host_port + "/_node/pipelines", function(data) {
-                panel.find('.workers_value').text(data['pipelines']['main']['workers']);
-                panel.find('.bdelay_value').text(data['pipelines']['main']['batch_delay']);
-                panel.find('.bsize_value').text(data['pipelines']['main']['batch_size']);
+                var pipelines_json = data['pipelines'];
+                for (var pipeline in pipelines_json) {
+                    var pipeline_id = pipeline;
+                    var info_json = pipelines_json[pipeline_id];
+
+                    var plugin_panel_id = 'plugin_panel_' + pipeline_id;
+                    var plugin_panel = panel.find("#"+plugin_panel_id);
+                    plugin_panel.find('.workers_value').text(info_json['workers']);
+                    plugin_panel.find('.bdelay_value').text(info_json['batch_delay']);
+                    plugin_panel.find('.bsize_value').text(info_json['batch_size']);
+                }
             });
             $.get(host_port + "/_node/hot_threads?human=true", function(data) {
                 panel.find('.ht_text').text(data);
@@ -536,58 +580,72 @@
             var host_port = panel.find('h2').text();
             
             $.get(host_port + "/_node/stats/pipelines", function(data) {
-                var plugins_stats_container = panel.find("#plugins_stats_container");
-                var plugins_json = data['pipelines']['main']['plugins'];
-                var inputs = plugins_json['inputs'];
-                var filters = plugins_json['filters'];
-                var outputs = plugins_json['outputs'];
-                var instance_index = 0;
+                var pipelines_stats_container = panel.find("#pipelines_stats_container");
+                var pipelines_json = data['pipelines'];
+                for (var pipeline in pipelines_json) {
+                	var pipeline_id = pipeline;
+                	var plugins_json = pipelines_json[pipeline_id]['plugins'];
 
-                for (var i = 0; i < inputs.length; i++) {
-                    var input = inputs[i];
-                    var name = input['name'];
-                    var id = input['id'];
+                	var plugin_panel_id = 'plugin_panel_' + pipeline_id;
+                	$new_plugin_panel = $('#plugin_panel').clone().prop('id', plugin_panel_id).appendTo(pipelines_stats_container);
+                	$new_plugin_panel.removeAttr("style").find('.plugin-panel-heading').append('Pipelines Stats (Pipeline Id: '+pipeline_id+')');
+                	var plugin_stats_body = $new_plugin_panel.find('.plugin-panel-body');
 
-                    var instance_id = 'in_stats' + instance_index;
-                    $new_in_stats = $('#in_stats').clone().prop('id', instance_id).appendTo(plugins_stats_container);
-                    $new_in_stats.find('.panel-heading').text('Input Plugin - ' + name);
+                	var inputs = plugins_json['inputs'];
+	                var filters = plugins_json['filters'];
+	                var outputs = plugins_json['outputs'];
+	                var instance_index = 0;
 
-                    $new_in_stats.find('p')[0].id = "out" + id;
-                    $new_in_stats.find('p')[1].id = "pdur" + id;
-                    $new_in_stats.show();
-                    instance_index += 1;
-                }
+	                for (var i = 0; i < inputs.length; i++) {
+	                    var input = inputs[i];
+	                    var name = input['name'];
+	                    var id = input['id'];
 
-                for (var i = 0; i < filters.length; i++) {
-                    var filter = filters[i];
-                    var name = filter['name'];
-                    var id = filter['id'];
+	                    var instance_id = 'in_stats_' + pipeline_id + instance_index;
+	                    $new_in_stats = $('#in_stats').clone().prop('id', instance_id).appendTo(plugin_stats_body);
+	                    $new_in_stats.find('.panel-heading').text('Input Plugin - ' + name);
 
-                    var instance_id = 'fil_out_stats' + instance_index;
-                    $new_fil_stats = $('#fil_out_stats').clone().prop('id', instance_id).appendTo(plugins_stats_container);
-                    $new_fil_stats.find('.panel-heading').text('Filter Plugin - ' + name);
+                        $new_in_stats.find('p')[0].innerHTML = id;
+	                    $new_in_stats.find('p')[1].id = "out" + id;
+	                    $new_in_stats.find('p')[2].id = "pdur" + id;
+	                    $new_in_stats.show();
+	                    instance_index += 1;
+	                }
 
-                    $new_fil_stats.find('p')[0].id = "in" + id;
-                    $new_fil_stats.find('p')[1].id = "out" + id;
-                    $new_fil_stats.find('p')[2].id = "dur" + id;
-                    $new_fil_stats.show();
-                    instance_index += 1;
-                }
+	                for (var i = 0; i < filters.length; i++) {
+	                    var filter = filters[i];
+	                    var name = filter['name'];
+	                    var id = filter['id'];
 
-                for (var i = 0; i < outputs.length; i++) {
-                    var output = outputs[i];
-                    var name = output['name'];
-                    var id = output['id'];
+	                    var instance_id = 'fil_out_stats_' + pipeline_id + instance_index;
+	                    $new_fil_stats = $('#fil_out_stats').clone().prop('id', instance_id).appendTo(plugin_stats_body);
+	                    $new_fil_stats.find('.panel-heading').text('Filter Plugin - ' + name);
 
-                    var instance_id = 'fil_out_stats' + instance_index;
-                    $new_out_stats = $('#fil_out_stats').clone().prop('id', instance_id).appendTo(plugins_stats_container);
-                    $new_out_stats.find('.panel-heading').text('Output Plugin - ' + name);
+                        $new_fil_stats.find('p')[0].innerHTML = id;
+	                    $new_fil_stats.find('p')[1].id = "in" + id;
+	                    $new_fil_stats.find('p')[2].id = "out" + id;
+	                    $new_fil_stats.find('p')[3].id = "dur" + id;
+	                    $new_fil_stats.show();
+	                    instance_index += 1;
+	                }
 
-                    $new_out_stats.find('p')[0].id = "in" + id;
-                    $new_out_stats.find('p')[1].id = "out" + id;
-                    $new_out_stats.find('p')[2].id = "dur" + id;
-                    $new_out_stats.show();
-                    instance_index += 1;
+	                for (var i = 0; i < outputs.length; i++) {
+	                    var output = outputs[i];
+	                    var name = output['name'];
+	                    var id = output['id'];
+
+	                    var instance_id = 'fil_out_stats_' + pipeline_id + instance_index;
+	                    $new_out_stats = $('#fil_out_stats').clone().prop('id', instance_id).appendTo(plugin_stats_body);
+	                    $new_out_stats.find('.panel-heading').text('Output Plugin - ' + name);
+
+                        $new_out_stats.find('p')[0].innerHTML = id;
+	                    $new_out_stats.find('p')[1].id = "in" + id;
+	                    $new_out_stats.find('p')[2].id = "out" + id;
+	                    $new_out_stats.find('p')[3].id = "dur" + id;
+	                    $new_out_stats.show();
+	                    instance_index += 1;
+	                }
+
                 }
             });
         };
