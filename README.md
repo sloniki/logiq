@@ -2,7 +2,7 @@
 
 LogIQ is a simple monitoring front end for Elastic Logstash. It uses Monitoring [API](https://www.elastic.co/guide/en/logstash/current/monitoring.html).
 
-Works for Logstash version > **6.0**.
+Works for Logstash version > **6.0** (**7.0** has also been tested).
 
 ![example_image](example.png)
 
