@@ -10,16 +10,16 @@
         .panel-default>.panel-heading {
             color: #555555;
         }
-        
+
         .panel-title {
             padding-top: 6px;
         }
-        
+
         .row-fluid {
             padding-top: 10px;
             color: #555555;
         }
-        
+
         .row {
             padding-left: 15px;
             padding-right: 15px;
@@ -28,7 +28,7 @@
         .plugin-stats-div {
             padding-top: 10px;
         }
-        
+
         .table>tbody>tr:first-child>td {
             border: none;
         }
@@ -41,17 +41,17 @@
             width: 40%;
             word-break: break-all;
         }
-        
+
         .table {
             margin-bottom: 0;
         }
-        
+
         .glyphicon-refresh-animate {
             float: right;
             -animation: spin 1s infinite linear;
             -webkit-animation: spin2 1s infinite linear;
         }
-        
+
         @-webkit-keyframes spin2 {
             from {
                 -webkit-transform: rotate(0deg);
@@ -60,7 +60,7 @@
                 -webkit-transform: rotate(360deg);
             }
         }
-        
+
         @keyframes spin {
             from {
                 transform: scale(1) rotate(0deg);
@@ -92,6 +92,13 @@
                 <input id="host_port" class="form-control" name="hostname" value="http://hostname:9601">
             </div>
             <button id="bt_connect" type='button' class="btn btn-success">Add</button>
+
+            <div class="form-group" style="margin-left: 20px;">
+                <label for="refresh_interval">Refresh Interval(s) </label>
+                <input id="refresh_interval" class="form-control" value="3">
+            </div>
+            <button id="bt_set_refresh" type='button' class="btn btn-success">Set</button>
+
             <!--<button id="bt_refresh" type='button' class="btn btn-primary pull-right">Refresh</button>-->
             <div class="col-md-2 pull-right">
                 <h4 id="upd_date">Last Update: N/A</h4>
@@ -436,7 +443,7 @@
             $(".glyphicon").show().fadeIn('slow').delay(500).fadeOut('slow');
         };
 
-        setInterval(function() {
+        var interval = setInterval(function() {
             update_all();
         }, refresh_interval);
 
@@ -478,7 +485,7 @@
                 for (var pipeline in pipelines_json) {
                     var pipeline_id = pipeline;
                     var plugins_json = pipelines_json[pipeline_id]['plugins'];
-                    
+
                     var inputs = plugins_json['inputs'];
                     var filters = plugins_json['filters'];
                     var outputs = plugins_json['outputs'];
@@ -578,7 +585,7 @@
         //just init plugins_stats, not calculate
         function init_plugins_stats(panel) {
             var host_port = panel.find('h2').text();
-            
+
             $.get(host_port + "/_node/stats/pipelines", function(data) {
                 var pipelines_stats_container = panel.find("#pipelines_stats_container");
                 var pipelines_json = data['pipelines'];
@@ -649,6 +656,16 @@
                 }
             });
         };
+
+        // change refresh_interval and reset interval
+        $("#bt_set_refresh").on('click', function() {
+        	var new_interval = $('#refresh_interval').val();
+        	refresh_interval = new_interval * 1000;
+        	clearInterval(interval);
+        	interval = setInterval(function() {
+	            update_all();
+	        }, refresh_interval);
+        });
 
         $("#bt_connect").on('click', function() {
             var host_port = $('#host_port').val();
