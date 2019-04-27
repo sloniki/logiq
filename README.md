@@ -6,25 +6,11 @@ Works for Logstash version > **6.0** (**7.0** has also been tested).
 
 ![example_image](example.png)
 
-# Update
-
-**By PriestTomb**
-
-* update LogStash monitor API to v6.0
-
-* modify the time-related data unit in seconds
-
-* show 5m and 15m cpu average load data
-
-* deleted manually refreshed button, changed to auto refresh, default interval is 3 seconds
-
-* show all pipelines instance stats, and use `_node/stats/pipelines` API to show In/Filter/Out events data and TPS for all running plugins (just real-time calculations, non-persistent)
-
 # Usage
 Just open the html page and add your Logstash hosts with port number. You need internet connection as the page uses external libraries like bootstrap and jquery.
 
 # Logstash Configuration
-You need to enable remote connections on Logstash, just add the line in Logstash config file (default /etc/logstash/logstash.yml):
+You need to enable remote connections on Logstash, just add the line in Logstash config file (default /path/to/logstash/config/logstash.yml):
 
 ```http.host: "0.0.0.0"```
 
@@ -48,3 +34,12 @@ server {
 
 Don't forget to set your logstash hostname and exposed port.
 After Nginx restart it will proxy requests from port 9601 to 9600 with right headeres.
+
+
+# TO-DO
+- Add Logstash disconnections handling
+- Add charts
+- Make as a browser plugin
+
+# Feedback
+[sadovenko@gmail.com]()
