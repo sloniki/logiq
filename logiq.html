@@ -25,8 +25,21 @@
             padding-right: 15px;
         }
 
+        .plugin-stats-div {
+            padding-top: 10px;
+        }
+
         .table>tbody>tr:first-child>td {
             border: none;
+        }
+
+        .table>tbody>tr:first-child>td:first-child {
+            width: 60%;
+        }
+
+        .table>tbody>tr:first-child>td:last-child {
+            width: 40%;
+            word-break: break-all;
         }
 
         .table {
@@ -68,7 +81,7 @@
                 <a class="navbar-brand">LogIQ</a>
             </div>
             <div class="notices pull-right">
-                <p class="navbar-text">ver 0.4</p>
+                <p class="navbar-text">ver 0.5</p>
             </div>
         </div>
     </nav>
@@ -79,7 +92,14 @@
                 <input id="host_port" class="form-control" name="hostname" value="http://hostname:9601">
             </div>
             <button id="bt_connect" type='button' class="btn btn-success">Add</button>
-            <button id="bt_refresh" type='button' class="btn btn-primary pull-right">Refresh</button>
+
+            <div class="form-group" style="margin-left: 20px;">
+                <label for="refresh_interval">Refresh Interval(s) </label>
+                <input id="refresh_interval" class="form-control" value="3">
+            </div>
+            <button id="bt_set_refresh" type='button' class="btn btn-success">Set</button>
+
+            <!--<button id="bt_refresh" type='button' class="btn btn-primary pull-right">Refresh</button>-->
             <div class="col-md-2 pull-right">
                 <h4 id="upd_date">Last Update: N/A</h4>
             </div>
@@ -95,24 +115,24 @@
             <div class="row-fluid">
                 <div class="col-md-4">
                     <div class="panel panel-default">
-                        <div class="panel-heading">Pipeline Stats</div>
+                        <div class="panel-heading">Events Stats</div>
                         <div class="panel-body">
-                            <table class="table table">
+                            <table class="table">
                                 <tbody>
                                     <tr>
-                                        <td>In:</td>
+                                        <td>In Nums:</td>
                                         <td>
                                             <p class="text-info in_value">N/A</p>
                                         </td>
                                     </tr>
                                     <tr>
-                                        <td>Filterd:</td>
+                                        <td>Filterd Nums:</td>
                                         <td>
                                             <p class="text-info fil_value">N/A</p>
                                         </td>
                                     </tr>
                                     <tr>
-                                        <td>Out:</td>
+                                        <td>Out Nums:</td>
                                         <td>
                                             <p class="text-info out_value">N/A</p>
                                         </td>
@@ -124,7 +144,7 @@
                                         </td>
                                     </tr>
                                     <tr>
-                                        <td>Push Duration, s:</td>
+                                        <td>Queue Push Duration, s:</td>
                                         <td>
                                             <p class="text-info pdur_value">N/A</p>
                                         </td>
@@ -138,7 +158,7 @@
                     <div class="panel panel-default">
                         <div class="panel-heading">JVM</div>
                         <div class="panel-body">
-                            <table class="table table">
+                            <table class="table">
                                 <tbody>
                                     <tr>
                                         <td>Heap Usage, %:</td>
@@ -179,7 +199,7 @@
                     <div class="panel panel-default">
                         <div class="panel-heading">Process Stats</div>
                         <div class="panel-body">
-                            <table class="table table">
+                            <table class="table">
                                 <tbody>
                                     <tr>
                                         <td>File Descriptors:</td>
@@ -190,25 +210,25 @@
                                     <tr>
                                         <td>Peak File Descriptors:</td>
                                         <td>
-                                            <p class="text-info text-info pfd_value">N/A</p>
+                                            <p class="text-info pfd_value">N/A</p>
                                         </td>
                                     </tr>
                                     <tr>
                                         <td>CPU, %</td>
                                         <td>
-                                            <p class="text-info text-info cpup_value">N/A</p>
+                                            <p class="text-info cpup_value">N/A</p>
                                         </td>
                                     </tr>
                                     <tr>
                                         <td>CPU Load Avg(1m 5m 15m):</td>
                                         <td>
-                                            <p class="text-info text-info load_value">N/A</p>
+                                            <p class="text-info load_value">N/A</p>
                                         </td>
                                     </tr>
                                     <tr>
                                         <td>Reloads Failures:</td>
                                         <td>
-                                            <p class="text-info text-info relf_value">N/A</p>
+                                            <p class="text-info relf_value">N/A</p>
                                         </td>
                                     </tr>
                                 </tbody>
@@ -217,6 +237,48 @@
                     </div>
                 </div>
             </div>
+
+            <div class="row-fluid">
+                <div id="pipelines_div" class="col-md-12">
+                    <div class="panel-group" id="pipelines_stats_container">
+                        <div id="plugin_panel" class="panel panel-default" style="display:none">
+                            <div class="panel-heading plugin-panel-heading"></div>
+                            <div class="panel-body plugin-panel-body">
+                                <div class="plugin-stats-div col-md-4">
+                                    <div class="panel panel-default">
+                                        <div class="panel-heading">Pipeline Base Info</div>
+                                        <div class="panel-body">
+                                            <table class="table">
+                                                <tbody>
+                                                    <tr>
+                                                        <td>Workers:</td>
+                                                        <td>
+                                                            <p class="text-info workers_value">N/A</p>
+                                                        </td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td>Batch Delay:</td>
+                                                        <td>
+                                                            <p class="text-info bdelay_value">N/A</p>
+                                                        </td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td>Batch Size:</td>
+                                                        <td>
+                                                            <p class="text-info bsize_value">N/A</p>
+                                                        </td>
+                                                    </tr>
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <div class="row">
                 <div id="coll_gr_1" class="col-md-12">
                     <div class="panel-group" id="accordion">
@@ -226,7 +288,7 @@
                             </div>
                             <div id="collapse1" class="panel-collapse collapse">
                                 <div class="panel-body">
-                                    <table class="table table">
+                                    <table class="table">
                                         <tbody>
                                             <tr>
                                                 <td>Host:</td>
@@ -256,25 +318,6 @@
                                                 <td>ID:</td>
                                                 <td>
                                                     <p class="text-info id_value">N/A</p>
-                                                </td>
-                                            </tr>
-
-                                            <tr>
-                                                <td>Workers:</td>
-                                                <td>
-                                                    <p class="text-info workers_value">N/A</p>
-                                                </td>
-                                            </tr>
-                                            <tr>
-                                                <td>Batch Delay:</td>
-                                                <td>
-                                                    <p class="text-info bdelay_value">N/A</p>
-                                                </td>
-                                            </tr>
-                                            <tr>
-                                                <td>Batch Size:</td>
-                                                <td>
-                                                    <p class="text-info bsize_value">N/A</p>
                                                 </td>
                                             </tr>
                                         </tbody>
@@ -311,9 +354,78 @@
                 </div>
             </div>
         </div>
+
+        <div id="fil_out_stats" class="plugin-stats-div col-md-4" style="display:none">
+            <div class="panel panel-default">
+                <div class="panel-heading"></div>
+                <div class="panel-body">
+                    <table class="table">
+                        <tbody>
+                            <tr>
+                                <td>Plugin Id:</td>
+                                <td>
+                                    <p class="text-info">0</p>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>In Nums (TPS):</td>
+                                <td>
+                                    <p class="text-info">0</p>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>Out Nums (TPS):</td>
+                                <td>
+                                    <p class="text-info">0</p>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>Duration, s:</td>
+                                <td>
+                                    <p class="text-info">0</p>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div id="in_stats" class="plugin-stats-div col-md-4" style="display:none">
+            <div class="panel panel-default">
+                <div class="panel-heading"></div>
+                <div class="panel-body">
+                    <table class="table">
+                        <tbody>
+                            <tr>
+                                <td>Plugin Id:</td>
+                                <td>
+                                    <p class="text-info">0</p>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>Out Nums (TPS):</td>
+                                <td>
+                                    <p class="text-info">0</p>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>Queue Push Duration, s:</td>
+                                <td>
+                                    <p class="text-info">0</p>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
     </div>
     <script>
         var panels_count = 0;
+        //auto refresh interval, ms
+        var refresh_interval = 3000;
 
         function formatBytes(bytes, decimals) {
             if (bytes == 0) return '0 Bytes';
@@ -331,9 +443,9 @@
             $(".glyphicon").show().fadeIn('slow').delay(500).fadeOut('slow');
         };
 
-        setInterval(function() {
+        var interval = setInterval(function() {
             update_all();
-        }, 15000);
+        }, refresh_interval);
 
         function update_panel(panel) {
             var host_port = panel.find('h2').text();
@@ -352,20 +464,85 @@
                 panel.find('.relf_value').text(data['reloads']['failures']);
             });
             $.get(host_port + "/_node/stats/events", function(data) {
-                var in_num = data['events']['in'];
-                var filter_num = data['events']['filtered'];
-                var out_num = data['events']['out'];
+            	var p_in = panel.find('.in_value');
+            	var p_fil = panel.find('.fil_value');
+            	var p_out = panel.find('.out_value');
+
+                var in_num_new = isNaN(parseInt(data['events']['in'])) ? 0 : parseInt(data['events']['in']);
+                var fil_num_new = isNaN(parseInt(data['events']['filtered'])) ? 0 : parseInt(data['events']['filtered']);
+                var out_num_new = isNaN(parseInt(data['events']['out'])) ? 0 : parseInt(data['events']['out']);
+                p_in.text(in_num_new);
+                p_fil.text(fil_num_new);
+                p_out.text(out_num_new);
+
                 var dur = data['events']['duration_in_millis'];
                 var push_dur = data['events']['queue_push_duration_in_millis'];
-                //var in_tps = dur == null || dur == 0 ? 0 : (in_num/(parseInt(dur)/1000).toFixed(1)).toFixed(1);
-                //var filter_tps = dur == null || dur == 0 ? 0 : (filter_num/(parseInt(dur)/1000).toFixed(1)).toFixed(1);
-                //var out_tps = dur == null || dur == 0 ? 0 : (out_num/(parseInt(dur)/1000).toFixed(1)).toFixed(1);
+                panel.find('.dur_value').text(dur == null ? 0 : (parseInt(dur)/1000).toFixed(1));
+                panel.find('.pdur_value').text(push_dur == null ? 0 : (parseInt(push_dur)/1000).toFixed(1));
+            });
+            $.get(host_port + "/_node/stats/pipelines", function(data) {
+                var pipelines_json = data['pipelines'];
+                for (var pipeline in pipelines_json) {
+                    var pipeline_id = pipeline;
+                    var plugins_json = pipelines_json[pipeline_id]['plugins'];
 
-                panel.find('.in_value').text(in_num);
-                panel.find('.fil_value').text(filter_num);
-                panel.find('.out_value').text(out_num);
-                panel.find('.dur_value').text(dur == null ? "null" : (parseInt(dur)/1000).toFixed(1));
-                panel.find('.pdur_value').text(push_dur == null ? "null" : (parseInt(push_dur)/1000).toFixed(1));
+                    var inputs = plugins_json['inputs'];
+                    var filters = plugins_json['filters'];
+                    var outputs = plugins_json['outputs'];
+                    var time_interval = refresh_interval/1000;
+
+                    for (var i = 0; i < inputs.length; i++) {
+                        var input = inputs[i];
+                        var id = input['id'];
+
+                        var p_out = panel.find("#out" + id);
+                        var out_num_new = isNaN(parseInt(input['events']['out'])) ? 0 : parseInt(input['events']['out']);
+                        var out_num_old = isNaN(parseInt(p_out.text())) ? 0 : parseInt(p_out.text());
+                        var out_tps = ((out_num_new - out_num_old)/time_interval).toFixed(1);
+                        p_out.text(out_num_new + " (" + out_tps + "/s)");
+
+                        var push_dur = input['events']['queue_push_duration_in_millis'];
+                        panel.find("#pdur" + id).text(push_dur == null ? 0 : (parseInt(push_dur)/1000).toFixed(1));
+                    }
+
+                    for (var i = 0; i < filters.length; i++) {
+                        var filter = filters[i];
+                        var id = filter['id'];
+
+                        var p_in = panel.find("#in" + id);
+                        var p_out = panel.find("#out" + id);
+                        var in_num_new = isNaN(parseInt(filter['events']['in'])) ? 0 : parseInt(filter['events']['in']);
+                        var out_num_new = isNaN(parseInt(filter['events']['out'])) ? 0 : parseInt(filter['events']['out']);
+                        var in_num_old = isNaN(parseInt(p_in.text())) ? 0 : parseInt(p_in.text());
+                        var out_num_old = isNaN(parseInt(p_out.text())) ? 0 : parseInt(p_out.text());
+                        var in_tps = ((in_num_new - in_num_old)/time_interval).toFixed(1);
+                        var out_tps = ((out_num_new - out_num_old)/time_interval).toFixed(1);
+                        p_in.text(in_num_new + " (" + in_tps + "/s)");
+                        p_out.text(out_num_new + " (" + out_tps + "/s)");
+
+                        var dur = filter['events']['duration_in_millis'];
+                        panel.find("#dur" + id).text(dur == null ? 0 : (parseInt(dur)/1000).toFixed(1));
+                    }
+
+                    for (var i = 0; i < outputs.length; i++) {
+                        var output = outputs[i];
+                        var id = output['id'];
+
+                        var p_in = panel.find("#in" + id);
+                        var p_out = panel.find("#out" + id);
+                        var in_num_new = isNaN(parseInt(output['events']['in'])) ? 0 : parseInt(output['events']['in']);
+                        var out_num_new = isNaN(parseInt(output['events']['out'])) ? 0 : parseInt(output['events']['out']);
+                        var in_num_old = isNaN(parseInt(p_in.text())) ? 0 : parseInt(p_in.text());
+                        var out_num_old = isNaN(parseInt(p_out.text())) ? 0 : parseInt(p_out.text());
+                        var in_tps = ((in_num_new - in_num_old)/time_interval).toFixed(1);
+                        var out_tps = ((out_num_new - out_num_old)/time_interval).toFixed(1);
+                        p_in.text(in_num_new + " (" + in_tps + "/s)");
+                        p_out.text(out_num_new + " (" + out_tps + "/s)");
+
+                        var dur = output['events']['duration_in_millis'];
+                        panel.find("#dur" + id).text(dur == null ? 0 : (parseInt(dur)/1000).toFixed(1));
+                    }
+                }
             });
             $.get(host_port + "/_node/stats/jvm", function(data) {
                 panel.find('.heapp_value').text(data['jvm']['mem']['heap_used_percent']);
@@ -382,9 +559,17 @@
                 panel.find('.id_value').text(data['id']);
             });
             $.get(host_port + "/_node/pipelines", function(data) {
-                panel.find('.workers_value').text(data['pipelines']['main']['workers']);
-                panel.find('.bdelay_value').text(data['pipelines']['main']['batch_delay']);
-                panel.find('.bsize_value').text(data['pipelines']['main']['batch_size']);
+                var pipelines_json = data['pipelines'];
+                for (var pipeline in pipelines_json) {
+                    var pipeline_id = pipeline;
+                    var info_json = pipelines_json[pipeline_id];
+
+                    var plugin_panel_id = 'plugin_panel_' + pipeline_id;
+                    var plugin_panel = panel.find("#"+plugin_panel_id);
+                    plugin_panel.find('.workers_value').text(info_json['workers']);
+                    plugin_panel.find('.bdelay_value').text(info_json['batch_delay']);
+                    plugin_panel.find('.bsize_value').text(info_json['batch_size']);
+                }
             });
             $.get(host_port + "/_node/hot_threads?human=true", function(data) {
                 panel.find('.ht_text').text(data);
@@ -396,6 +581,91 @@
             var time = dt.getHours() + ":" + dt.getMinutes() + ":" + dt.getSeconds();
             $('#upd_date').text('Last Update: ' + time);
         };
+
+        //just init plugins_stats, not calculate
+        function init_plugins_stats(panel) {
+            var host_port = panel.find('h2').text();
+
+            $.get(host_port + "/_node/stats/pipelines", function(data) {
+                var pipelines_stats_container = panel.find("#pipelines_stats_container");
+                var pipelines_json = data['pipelines'];
+                for (var pipeline in pipelines_json) {
+                	var pipeline_id = pipeline;
+                	var plugins_json = pipelines_json[pipeline_id]['plugins'];
+
+                	var plugin_panel_id = 'plugin_panel_' + pipeline_id;
+                	$new_plugin_panel = $('#plugin_panel').clone().prop('id', plugin_panel_id).appendTo(pipelines_stats_container);
+                	$new_plugin_panel.removeAttr("style").find('.plugin-panel-heading').append('Pipelines Stats (Pipeline Id: '+pipeline_id+')');
+                	var plugin_stats_body = $new_plugin_panel.find('.plugin-panel-body');
+
+                	var inputs = plugins_json['inputs'];
+	                var filters = plugins_json['filters'];
+	                var outputs = plugins_json['outputs'];
+	                var instance_index = 0;
+
+	                for (var i = 0; i < inputs.length; i++) {
+	                    var input = inputs[i];
+	                    var name = input['name'];
+	                    var id = input['id'];
+
+	                    var instance_id = 'in_stats_' + pipeline_id + instance_index;
+	                    $new_in_stats = $('#in_stats').clone().prop('id', instance_id).appendTo(plugin_stats_body);
+	                    $new_in_stats.find('.panel-heading').text('Input Plugin - ' + name);
+
+                        $new_in_stats.find('p')[0].innerHTML = id;
+	                    $new_in_stats.find('p')[1].id = "out" + id;
+	                    $new_in_stats.find('p')[2].id = "pdur" + id;
+	                    $new_in_stats.show();
+	                    instance_index += 1;
+	                }
+
+	                for (var i = 0; i < filters.length; i++) {
+	                    var filter = filters[i];
+	                    var name = filter['name'];
+	                    var id = filter['id'];
+
+	                    var instance_id = 'fil_out_stats_' + pipeline_id + instance_index;
+	                    $new_fil_stats = $('#fil_out_stats').clone().prop('id', instance_id).appendTo(plugin_stats_body);
+	                    $new_fil_stats.find('.panel-heading').text('Filter Plugin - ' + name);
+
+                        $new_fil_stats.find('p')[0].innerHTML = id;
+	                    $new_fil_stats.find('p')[1].id = "in" + id;
+	                    $new_fil_stats.find('p')[2].id = "out" + id;
+	                    $new_fil_stats.find('p')[3].id = "dur" + id;
+	                    $new_fil_stats.show();
+	                    instance_index += 1;
+	                }
+
+	                for (var i = 0; i < outputs.length; i++) {
+	                    var output = outputs[i];
+	                    var name = output['name'];
+	                    var id = output['id'];
+
+	                    var instance_id = 'fil_out_stats_' + pipeline_id + instance_index;
+	                    $new_out_stats = $('#fil_out_stats').clone().prop('id', instance_id).appendTo(plugin_stats_body);
+	                    $new_out_stats.find('.panel-heading').text('Output Plugin - ' + name);
+
+                        $new_out_stats.find('p')[0].innerHTML = id;
+	                    $new_out_stats.find('p')[1].id = "in" + id;
+	                    $new_out_stats.find('p')[2].id = "out" + id;
+	                    $new_out_stats.find('p')[3].id = "dur" + id;
+	                    $new_out_stats.show();
+	                    instance_index += 1;
+	                }
+
+                }
+            });
+        };
+
+        // change refresh_interval and reset interval
+        $("#bt_set_refresh").on('click', function() {
+        	var new_interval = $('#refresh_interval').val();
+        	refresh_interval = new_interval * 1000;
+        	clearInterval(interval);
+        	interval = setInterval(function() {
+	            update_all();
+	        }, refresh_interval);
+        });
 
         $("#bt_connect").on('click', function() {
             var host_port = $('#host_port').val();
@@ -422,6 +692,7 @@
                         $new_ls_instance.find('#collapse2').attr('id', 'collapse2' + panels_count);
                         $new_ls_instance.find('#collapse3').attr('id', 'collapse3' + panels_count);
                         $new_ls_instance.find('#delete_panel').attr('id', 'delete_panel' + panels_count);
+                        init_plugins_stats($new_ls_instance);
                         $new_ls_instance.show();
                         panels_count = panels_count + 1;
                         update_panel($new_ls_instance);
