@@ -95,7 +95,7 @@
 
             <div class="form-group" style="margin-left: 20px;">
                 <label for="refresh_interval">Refresh Interval(s) </label>
-                <input id="refresh_interval" class="form-control" value="3">
+                <input id="refresh_interval" class="form-control" value="10">
             </div>
             <button id="bt_set_refresh" type='button' class="btn btn-success">Set</button>
 
@@ -167,25 +167,25 @@
                                         </td>
                                     </tr>
                                     <tr>
-                                        <td>Heap Usage, Bytes:</td>
+                                        <td>Heap Usage:</td>
                                         <td>
                                             <p class="text-info heapb_value">N/A</p>
                                         </td>
                                     </tr>
                                     <tr>
-                                        <td>Heap Usage Max, Bytes:</td>
+                                        <td>Heap Usage Max:</td>
                                         <td>
                                             <p class="text-info heapbm_value">N/A</p>
                                         </td>
                                     </tr>
                                     <tr>
-                                        <td>Non Heap, Bytes:</td>
+                                        <td>Non Heap:</td>
                                         <td>
                                             <p class="text-info nheapb_value">N/A</p>
                                         </td>
                                     </tr>
                                     <tr>
-                                        <td>Uptime, s:</td>
+                                        <td>Uptime:</td>
                                         <td>
                                             <p class="text-info upm_value">N/A</p>
                                         </td>
@@ -257,7 +257,7 @@
                                                         </td>
                                                     </tr>
                                                     <tr>
-                                                        <td>Batch Delay:</td>
+                                                        <td>Batch Delay, ms:</td>
                                                         <td>
                                                             <p class="text-info bdelay_value">N/A</p>
                                                         </td>
@@ -266,6 +266,12 @@
                                                         <td>Batch Size:</td>
                                                         <td>
                                                             <p class="text-info bsize_value">N/A</p>
+                                                        </td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td>Queue Type:</td>
+                                                        <td>
+                                                            <p class="text-info queue_type">N/A</p>
                                                         </td>
                                                     </tr>
                                                 </tbody>
@@ -368,13 +374,13 @@
                                 </td>
                             </tr>
                             <tr>
-                                <td>In Nums (TPS):</td>
+                                <td>In Nums:</td>
                                 <td>
                                     <p class="text-info">0</p>
                                 </td>
                             </tr>
                             <tr>
-                                <td>Out Nums (TPS):</td>
+                                <td>Out Nums:</td>
                                 <td>
                                     <p class="text-info">0</p>
                                 </td>
@@ -404,7 +410,7 @@
                                 </td>
                             </tr>
                             <tr>
-                                <td>Out Nums (TPS):</td>
+                                <td>Out Nums:</td>
                                 <td>
                                     <p class="text-info">0</p>
                                 </td>
@@ -425,7 +431,7 @@
     <script>
         var panels_count = 0;
         //auto refresh interval, ms
-        var refresh_interval = 3000;
+        var refresh_interval = 10000;
 
         function formatBytes(bytes, decimals) {
             if (bytes == 0) return '0 Bytes';
@@ -434,6 +440,14 @@
                 sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB'],
                 i = Math.floor(Math.log(bytes) / Math.log(k));
             return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i];
+        }
+
+        function millis2Days(milliseconds) {
+            var days = Math.floor(milliseconds / 86400000)
+            var hours = Math.floor(milliseconds / 3600000 - (24 * days))
+            var minutes = Math.floor(milliseconds / 60000 - (1440 * days) - (60 * hours))
+            var seconds = Math.floor(milliseconds / 1000 - (86400 * days) - (3600 * hours) - (60 * minutes))
+            return days + " d, " + hours + " h, " + minutes + " m, " + seconds + "s"
         }
 
         function update_all() {
@@ -489,7 +503,6 @@
                     var inputs = plugins_json['inputs'];
                     var filters = plugins_json['filters'];
                     var outputs = plugins_json['outputs'];
-                    var time_interval = refresh_interval/1000;
 
                     for (var i = 0; i < inputs.length; i++) {
                         var input = inputs[i];
@@ -498,8 +511,7 @@
                         var p_out = panel.find("#out" + id);
                         var out_num_new = isNaN(parseInt(input['events']['out'])) ? 0 : parseInt(input['events']['out']);
                         var out_num_old = isNaN(parseInt(p_out.text())) ? 0 : parseInt(p_out.text());
-                        var out_tps = ((out_num_new - out_num_old)/time_interval).toFixed(1);
-                        p_out.text(out_num_new + " (" + out_tps + "/s)");
+                        p_out.text(out_num_new);
 
                         var push_dur = input['events']['queue_push_duration_in_millis'];
                         panel.find("#pdur" + id).text(push_dur == null ? 0 : (parseInt(push_dur)/1000).toFixed(1));
@@ -515,10 +527,8 @@
                         var out_num_new = isNaN(parseInt(filter['events']['out'])) ? 0 : parseInt(filter['events']['out']);
                         var in_num_old = isNaN(parseInt(p_in.text())) ? 0 : parseInt(p_in.text());
                         var out_num_old = isNaN(parseInt(p_out.text())) ? 0 : parseInt(p_out.text());
-                        var in_tps = ((in_num_new - in_num_old)/time_interval).toFixed(1);
-                        var out_tps = ((out_num_new - out_num_old)/time_interval).toFixed(1);
-                        p_in.text(in_num_new + " (" + in_tps + "/s)");
-                        p_out.text(out_num_new + " (" + out_tps + "/s)");
+                        p_in.text(in_num_new);
+                        p_out.text(out_num_new);
 
                         var dur = filter['events']['duration_in_millis'];
                         panel.find("#dur" + id).text(dur == null ? 0 : (parseInt(dur)/1000).toFixed(1));
@@ -534,14 +544,15 @@
                         var out_num_new = isNaN(parseInt(output['events']['out'])) ? 0 : parseInt(output['events']['out']);
                         var in_num_old = isNaN(parseInt(p_in.text())) ? 0 : parseInt(p_in.text());
                         var out_num_old = isNaN(parseInt(p_out.text())) ? 0 : parseInt(p_out.text());
-                        var in_tps = ((in_num_new - in_num_old)/time_interval).toFixed(1);
-                        var out_tps = ((out_num_new - out_num_old)/time_interval).toFixed(1);
-                        p_in.text(in_num_new + " (" + in_tps + "/s)");
-                        p_out.text(out_num_new + " (" + out_tps + "/s)");
+                        p_in.text(in_num_new);
+                        p_out.text(out_num_new);
 
                         var dur = output['events']['duration_in_millis'];
                         panel.find("#dur" + id).text(dur == null ? 0 : (parseInt(dur)/1000).toFixed(1));
                     }
+
+                    var plugin_panel = panel.find("#plugin_panel_" + pipeline_id);
+                    plugin_panel.find('.queue_type').text(pipelines_json[pipeline_id]['queue']['type']);
                 }
             });
             $.get(host_port + "/_node/stats/jvm", function(data) {
@@ -549,7 +560,7 @@
                 panel.find('.heapb_value').text(formatBytes(data['jvm']['mem']['heap_used_in_bytes']), 3);
                 panel.find('.nheapb_value').text(formatBytes(data['jvm']['mem']['non_heap_used_in_bytes']), 3);
                 panel.find('.heapbm_value').text(formatBytes(data['jvm']['mem']['heap_max_in_bytes']), 3);
-                panel.find('.upm_value').text((parseInt(data['jvm']['uptime_in_millis'])/1000).toFixed(1));
+                panel.find('.upm_value').text(millis2Days(parseInt(data['jvm']['uptime_in_millis'])));
             });
             $.get(host_port + "/_node/os", function(data) {
                 panel.find('.host_value').text(data['host']);
@@ -652,7 +663,6 @@
 	                    $new_out_stats.show();
 	                    instance_index += 1;
 	                }
-
                 }
             });
         };
