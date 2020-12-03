@@ -720,12 +720,19 @@
 	                    instance_index += 1;
 	                }
 
+                    // create a pie charts module to show filter and output `duration_in_millis` data
                     var instance_id = 'duration_pie_charts_' + pipeline_id;
                     $new_duration_pid_charts = $('#duration_pie_charts').clone().prop('id', instance_id).appendTo(plugin_stats_body);
                     $new_duration_pid_charts.find('.panel-heading').text('Pie Charts about Duration');
                     $new_duration_pid_charts.find('.panel-body').prop("id", instance_id + "_div");
                     $new_duration_pid_charts.show();
-                    var chart = echarts.init(document.getElementById(instance_id + "_div"));
+                    let chart = echarts.init(document.getElementById(instance_id + "_div"));
+                    let resizeFunc = function() {
+                        setTimeout(function(){
+                            chart.resize();
+                        }, 200)
+                    }
+                    window.addEventListener("resize", resizeFunc);
                     chart_map.set(instance_id, chart);
                 }
             });
