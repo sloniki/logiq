@@ -2,10 +2,12 @@
 <html>
 
 <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     <title>Logstash Monitor</title>
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootswatch/3.3.7/cerulean/bootstrap.min.css">
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.0/jquery.min.js"></script>
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/echarts@4.9.0/dist/echarts.min.js"></script>
     <style media="screen" type="text/css">
         .panel-default>.panel-heading {
             color: #555555;
@@ -95,7 +97,7 @@
 
             <div class="form-group" style="margin-left: 20px;">
                 <label for="refresh_interval">Refresh Interval(s) </label>
-                <input id="refresh_interval" class="form-control" value="3">
+                <input id="refresh_interval" class="form-control" value="10">
             </div>
             <button id="bt_set_refresh" type='button' class="btn btn-success">Set</button>
 
@@ -167,25 +169,25 @@
                                         </td>
                                     </tr>
                                     <tr>
-                                        <td>Heap Usage, Bytes:</td>
+                                        <td>Heap Usage:</td>
                                         <td>
                                             <p class="text-info heapb_value">N/A</p>
                                         </td>
                                     </tr>
                                     <tr>
-                                        <td>Heap Usage Max, Bytes:</td>
+                                        <td>Heap Usage Max:</td>
                                         <td>
                                             <p class="text-info heapbm_value">N/A</p>
                                         </td>
                                     </tr>
                                     <tr>
-                                        <td>Non Heap, Bytes:</td>
+                                        <td>Non Heap:</td>
                                         <td>
                                             <p class="text-info nheapb_value">N/A</p>
                                         </td>
                                     </tr>
                                     <tr>
-                                        <td>Uptime, s:</td>
+                                        <td>Uptime:</td>
                                         <td>
                                             <p class="text-info upm_value">N/A</p>
                                         </td>
@@ -257,7 +259,7 @@
                                                         </td>
                                                     </tr>
                                                     <tr>
-                                                        <td>Batch Delay:</td>
+                                                        <td>Batch Delay, ms:</td>
                                                         <td>
                                                             <p class="text-info bdelay_value">N/A</p>
                                                         </td>
@@ -266,6 +268,12 @@
                                                         <td>Batch Size:</td>
                                                         <td>
                                                             <p class="text-info bsize_value">N/A</p>
+                                                        </td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td>Queue Type:</td>
+                                                        <td>
+                                                            <p class="text-info queue_type">N/A</p>
                                                         </td>
                                                     </tr>
                                                 </tbody>
@@ -368,13 +376,13 @@
                                 </td>
                             </tr>
                             <tr>
-                                <td>In Nums (TPS):</td>
+                                <td>In Nums:</td>
                                 <td>
                                     <p class="text-info">0</p>
                                 </td>
                             </tr>
                             <tr>
-                                <td>Out Nums (TPS):</td>
+                                <td>Out Nums:</td>
                                 <td>
                                     <p class="text-info">0</p>
                                 </td>
@@ -404,7 +412,7 @@
                                 </td>
                             </tr>
                             <tr>
-                                <td>Out Nums (TPS):</td>
+                                <td>Out Nums:</td>
                                 <td>
                                     <p class="text-info">0</p>
                                 </td>
@@ -421,11 +429,21 @@
             </div>
         </div>
 
+        <div id="duration_pie_charts" class="plugin-stats-div col-md-4" style="display:none">
+            <div class="panel panel-default">
+                <div class="panel-heading"></div>
+                <div class="panel-body" style="height: 250px"></div>
+            </div>
+        </div>
+
     </div>
     <script>
         var panels_count = 0;
         //auto refresh interval, ms
-        var refresh_interval = 3000;
+        var refresh_interval = 10000;
+
+        // create a map to save echarts objects
+        var chart_map = new Map();
 
         function formatBytes(bytes, decimals) {
             if (bytes == 0) return '0 Bytes';
@@ -434,6 +452,14 @@
                 sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB'],
                 i = Math.floor(Math.log(bytes) / Math.log(k));
             return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i];
+        }
+
+        function millis2Days(milliseconds) {
+            var days = Math.floor(milliseconds / 86400000)
+            var hours = Math.floor(milliseconds / 3600000 - (24 * days))
+            var minutes = Math.floor(milliseconds / 60000 - (1440 * days) - (60 * hours))
+            var seconds = Math.floor(milliseconds / 1000 - (86400 * days) - (3600 * hours) - (60 * minutes))
+            return days + " d, " + hours + " h, " + minutes + " m, " + seconds + "s"
         }
 
         function update_all() {
@@ -489,7 +515,42 @@
                     var inputs = plugins_json['inputs'];
                     var filters = plugins_json['filters'];
                     var outputs = plugins_json['outputs'];
-                    var time_interval = refresh_interval/1000;
+
+                    // echarts variables
+                    var legend_data = [];
+                    var series_data = [];
+                    var duration_pie_chart_option = {
+                        tooltip: {
+                            trigger: 'item',
+                            formatter: '{a} <br/>{b}: {c} ({d}%)'
+                        },
+                        legend: {
+                            orient: 'vertical',
+                            left: 10,
+                            data: []
+                        },
+                        series: [
+                            {
+                                name: 'Duration',
+                                type: 'pie',
+                                radius: ['30%', '55%'],
+                                avoidLabelOverlap: false,
+                                label: {
+                                    show: false,
+                                    position: 'center'
+                                },
+                                emphasis: {
+                                    label: {
+                                        show: false
+                                    }
+                                },
+                                labelLine: {
+                                    show: false
+                                },
+                                data: []
+                            }
+                        ]
+                    };
 
                     for (var i = 0; i < inputs.length; i++) {
                         var input = inputs[i];
@@ -498,8 +559,7 @@
                         var p_out = panel.find("#out" + id);
                         var out_num_new = isNaN(parseInt(input['events']['out'])) ? 0 : parseInt(input['events']['out']);
                         var out_num_old = isNaN(parseInt(p_out.text())) ? 0 : parseInt(p_out.text());
-                        var out_tps = ((out_num_new - out_num_old)/time_interval).toFixed(1);
-                        p_out.text(out_num_new + " (" + out_tps + "/s)");
+                        p_out.text(out_num_new);
 
                         var push_dur = input['events']['queue_push_duration_in_millis'];
                         panel.find("#pdur" + id).text(push_dur == null ? 0 : (parseInt(push_dur)/1000).toFixed(1));
@@ -507,41 +567,21 @@
 
                     for (var i = 0; i < filters.length; i++) {
                         var filter = filters[i];
-                        var id = filter['id'];
-
-                        var p_in = panel.find("#in" + id);
-                        var p_out = panel.find("#out" + id);
-                        var in_num_new = isNaN(parseInt(filter['events']['in'])) ? 0 : parseInt(filter['events']['in']);
-                        var out_num_new = isNaN(parseInt(filter['events']['out'])) ? 0 : parseInt(filter['events']['out']);
-                        var in_num_old = isNaN(parseInt(p_in.text())) ? 0 : parseInt(p_in.text());
-                        var out_num_old = isNaN(parseInt(p_out.text())) ? 0 : parseInt(p_out.text());
-                        var in_tps = ((in_num_new - in_num_old)/time_interval).toFixed(1);
-                        var out_tps = ((out_num_new - out_num_old)/time_interval).toFixed(1);
-                        p_in.text(in_num_new + " (" + in_tps + "/s)");
-                        p_out.text(out_num_new + " (" + out_tps + "/s)");
-
-                        var dur = filter['events']['duration_in_millis'];
-                        panel.find("#dur" + id).text(dur == null ? 0 : (parseInt(dur)/1000).toFixed(1));
+                        set_fil_out_plugin_data(panel, filter, "filter", legend_data, series_data);
                     }
 
                     for (var i = 0; i < outputs.length; i++) {
                         var output = outputs[i];
-                        var id = output['id'];
-
-                        var p_in = panel.find("#in" + id);
-                        var p_out = panel.find("#out" + id);
-                        var in_num_new = isNaN(parseInt(output['events']['in'])) ? 0 : parseInt(output['events']['in']);
-                        var out_num_new = isNaN(parseInt(output['events']['out'])) ? 0 : parseInt(output['events']['out']);
-                        var in_num_old = isNaN(parseInt(p_in.text())) ? 0 : parseInt(p_in.text());
-                        var out_num_old = isNaN(parseInt(p_out.text())) ? 0 : parseInt(p_out.text());
-                        var in_tps = ((in_num_new - in_num_old)/time_interval).toFixed(1);
-                        var out_tps = ((out_num_new - out_num_old)/time_interval).toFixed(1);
-                        p_in.text(in_num_new + " (" + in_tps + "/s)");
-                        p_out.text(out_num_new + " (" + out_tps + "/s)");
-
-                        var dur = output['events']['duration_in_millis'];
-                        panel.find("#dur" + id).text(dur == null ? 0 : (parseInt(dur)/1000).toFixed(1));
+                        set_fil_out_plugin_data(panel, output, "output", legend_data, series_data);
                     }
+
+                    var plugin_panel = panel.find("#plugin_panel_" + pipeline_id);
+                    plugin_panel.find('.queue_type').text(pipelines_json[pipeline_id]['queue']['type']);
+
+                    // draw chart
+                    duration_pie_chart_option["legend"]["data"] = legend_data;
+                    duration_pie_chart_option["series"][0]["data"] = series_data;
+                    chart_map.get('duration_pie_charts_' + pipeline_id).setOption(duration_pie_chart_option, true);
                 }
             });
             $.get(host_port + "/_node/stats/jvm", function(data) {
@@ -549,7 +589,7 @@
                 panel.find('.heapb_value').text(formatBytes(data['jvm']['mem']['heap_used_in_bytes']), 3);
                 panel.find('.nheapb_value').text(formatBytes(data['jvm']['mem']['non_heap_used_in_bytes']), 3);
                 panel.find('.heapbm_value').text(formatBytes(data['jvm']['mem']['heap_max_in_bytes']), 3);
-                panel.find('.upm_value').text((parseInt(data['jvm']['uptime_in_millis'])/1000).toFixed(1));
+                panel.find('.upm_value').text(millis2Days(parseInt(data['jvm']['uptime_in_millis'])));
             });
             $.get(host_port + "/_node/os", function(data) {
                 panel.find('.host_value').text(data['host']);
@@ -581,6 +621,33 @@
             var time = dt.getHours() + ":" + dt.getMinutes() + ":" + dt.getSeconds();
             $('#upd_date').text('Last Update: ' + time);
         };
+
+        // set (or update) the metric data of filter plugin or output plugin 
+        // also set echarts data
+        function set_fil_out_plugin_data(panel, data, type, legend_data, series_data) {
+            var id = data['id'];
+            var name = data['name'];
+
+            var p_in = panel.find("#in" + id);
+            var p_out = panel.find("#out" + id);
+            var in_num_new = isNaN(parseInt(data['events']['in'])) ? 0 : parseInt(data['events']['in']);
+            var out_num_new = isNaN(parseInt(data['events']['out'])) ? 0 : parseInt(data['events']['out']);
+            var in_num_old = isNaN(parseInt(p_in.text())) ? 0 : parseInt(p_in.text());
+            var out_num_old = isNaN(parseInt(p_out.text())) ? 0 : parseInt(p_out.text());
+            p_in.text(in_num_new);
+            p_out.text(out_num_new);
+
+            var dur = data['events']['duration_in_millis'];
+            var dur_result = dur == null ? 0 : (parseInt(dur)/1000).toFixed(1);
+            panel.find("#dur" + id).text(dur_result);
+
+            var charts_name = type + "-" + name;
+            var charts_data = {};
+            charts_data["name"] = charts_name;
+            charts_data["value"] = dur_result;
+            legend_data.push(charts_name);
+            series_data.push(charts_data);
+        }
 
         //just init plugins_stats, not calculate
         function init_plugins_stats(panel) {
@@ -653,6 +720,20 @@
 	                    instance_index += 1;
 	                }
 
+                    // create a pie charts module to show filter and output `duration_in_millis` data
+                    var instance_id = 'duration_pie_charts_' + pipeline_id;
+                    $new_duration_pid_charts = $('#duration_pie_charts').clone().prop('id', instance_id).appendTo(plugin_stats_body);
+                    $new_duration_pid_charts.find('.panel-heading').text('Pie Charts about Duration');
+                    $new_duration_pid_charts.find('.panel-body').prop("id", instance_id + "_div");
+                    $new_duration_pid_charts.show();
+                    let chart = echarts.init(document.getElementById(instance_id + "_div"));
+                    let resizeFunc = function() {
+                        setTimeout(function(){
+                            chart.resize();
+                        }, 200)
+                    }
+                    window.addEventListener("resize", resizeFunc);
+                    chart_map.set(instance_id, chart);
                 }
             });
         };
